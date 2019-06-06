@@ -18,6 +18,21 @@ const configSchema = {
 // E.g. 'abc{}?'.split(/(\{\})?(\??)$/) -> ["abc", "{}", "?", ""];
 const schemaRE = /(\{\})?(\??)$/;
 
+// Verifies that entityTypes are not duplicated
+const ensureUniqueEntityTypes = arr => {
+  const existingEntities = arr.map(item => item.entityType);
+
+  const duplicateEntity = arr.find(current => {
+    const firstIndex = existingEntities.indexOf(current.entityType);
+    const wasFoundTwice = existingEntities
+      .slice(firstIndex + 1)
+      .includes(current.entityType);
+
+    return wasFoundTwice;
+  });
+
+  return duplicateEntity;
+};
 // Verifies that every member of an array matches the specified schema, see
 // above.
 const verifySchema = (arr, schema) =>
@@ -62,6 +77,13 @@ export default function processRules(rules) {
 
   if (!verifySchema(rules, configSchema)) {
     throw 'Error: rules do not match schema';
+  }
+
+  const duplicateEntity = ensureUniqueEntityTypes(rules);
+  if (duplicateEntity) {
+    throw `Error: duplicate entity detected (${JSON.stringify(
+      duplicateEntity
+    )})`;
   }
 
   cachedRules = rules.reduce((o, rule) => ((o[rule.entityType] = rule), o), {});

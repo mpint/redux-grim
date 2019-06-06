@@ -60,7 +60,7 @@ describe('processRules', () => {
       processRules([{ entityType: 'one' }, { [idProp]: 'id2' }]);
     }
 
-    expect(process).toThrow();
+    expect(process).toThrowError('Error: rules do not match schema');
   });
 
   test('should verify rules are invalid when they contain any other property', () => {
@@ -68,7 +68,17 @@ describe('processRules', () => {
       processRules([{ entityType: 'one' }, { entityType: 'two', other: 123 }]);
     }
 
-    expect(process).toThrow();
+    expect(process).toThrowError('Error: rules do not match schema');
+  });
+
+  test('should verify rules are invalid when they are duplicated', () => {
+    function process() {
+      processRules([{ entityType: 'one' }, { entityType: 'one' }]);
+    }
+
+    expect(process).toThrowError(
+      'Error: duplicate entity detected ({"entityType":"one"})'
+    );
   });
 
   test('ensure processed rules are cached', () => {
